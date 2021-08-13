@@ -118,7 +118,6 @@ app.post("/api", (req: express.Request, res: express.Response) => {
       });
       const params: Params = {
         status:
-          "ver.ts-test" +
           "今日のコミット数は" +
           count +
           "です。\n" +
@@ -127,7 +126,9 @@ app.post("/api", (req: express.Request, res: express.Response) => {
       };
       client.post("statuses/update", params, (tweet: Twitter.ResponseData) => {
         if (tweet) {
-          res.json(tweet);
+          console.log("ツイートしました。", tweet);
+        } else {
+          console.log("エラー");
         }
       });
     })
