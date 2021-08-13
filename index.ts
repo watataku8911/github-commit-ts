@@ -67,9 +67,9 @@ type Payload = {
 // ------------------------------------------------------------------------------------------------------
 
 // github apiに接続する非同期関数
-const getGithubCommitCount = async (): Promise<Data> => {
+const getGithubCommitCount = async (): Promise<Data[]> => {
   const resp = await fetch("https://api.github.com/users/watataku8911/events");
-  const data: Data = await resp.json();
+  const data: Data[] = await resp.json();
   return data;
 };
 
@@ -109,32 +109,27 @@ app.post("/api", (req: express.Request, res: express.Response) => {
   getGithubCommitCount()
     .then((resp) => {
       let count: number = 0;
-      const list: Data[] = [];
-      list.push(resp);
-      for (let i: number = 0; i < list.length; i++) {
-        if (resp[i].created_at.substr(0, 10) == stringToday()) {
+      resp.forEach((data: Data) => {
+        if (data.created_at.substr(0, 10) == stringToday()) {
           count++;
         } else {
-          break;
+          return;
         }
-      }
+      });
       const params: Params = {
         status:
+          "ver.ts-test" +
           "今日のコミット数は" +
           count +
           "です。\n" +
           "\n" +
           "https://github.com/watataku8911",
       };
-      client.post(
-        "statuses/update",
-        params,
-        (error, tweet: Twitter.ResponseData) => {
-          if (tweet) {
-            res.json(tweet);
-          }
+      client.post("statuses/update", params, (tweet: Twitter.ResponseData) => {
+        if (tweet) {
+          res.json(tweet);
         }
-      );
+      });
     })
     .catch(() => {
       console.log("Githubデータを取得できませんでした。");
